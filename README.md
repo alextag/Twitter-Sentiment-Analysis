@@ -25,10 +25,13 @@ Contains machine learning methods used for predicting sentiments for tweets. :8b
 
 - To display the graphs run `python *_runner.py --display_graphs`
 
+
 - To see the accuracy results for a model run `python *_runner.py --test=test_set`
  - No I did not cheat while training, commit history will show everything I've done.
- - Besides the results are ground breaking anyways...
- 
+
+
+- To use all of the data run `python *_runner.py --give_me_the_data`
+ - WARNING: this will easily consume 16+ GB of RAM for most of the models
 
 ### Data Source Used:
 - http://cs.stanford.edu/people/alecmgo/trainingandtestdata.zip
@@ -65,6 +68,9 @@ classification errors, precision, and recall will be compared against each other
 in order to determine if the independence assumed from a Bayesian Network has an
 advantage or disadvantage over a Gaussian class-conditional density in an LDA model
 for short texts.
+
+### TODO:
+Stemming support, this should reduce input noise. Yay for feature engineering!
 
 ### References
 

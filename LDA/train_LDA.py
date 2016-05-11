@@ -1,7 +1,7 @@
 """
 Author: Ramaneek Gill
 
-This program uses Multinomial Naive Bayes to predict tweet sentiments.
+This program uses Latent Dirichlet Allocation to predict tweet sentiments.
 
 By default this trains on only 10% of the available dataset so that
 old machines or laptops don't run into 12+ GB RAM usage.
@@ -40,10 +40,10 @@ import operator
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import uniform as sp_rand
-from sklearn.naive_bayes import MultinomialNB
 from sklearn.grid_search import RandomizedSearchCV
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import average_precision_score
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
 ### Global variables
 vocabulary = {} # A dictionary of all the unique words in the corpus
@@ -189,34 +189,39 @@ def extract_features(inputs_train, targets_train, inputs_valid, targets_valid, i
 
 	return np.array(train_features), np.array(valid_features), np.array(test_features)
 
-def train_model(features, targets, alpha=1):
+def train_model(features, targets, tol=None):
 	"""
-	Trains a Naive Bayes classifier using the features passed in.
+	Trains a LDA classifier using the features passed in.
 
 	Returns:
 		classifier  the trained model
 	"""
 	print('training model')
-	classifier = MultinomialNB(alpha=alpha)
+
+	if tol is not None:
+		classifier = LDA(tol=tol)
+	else:
+		classifier = LDA()
+
 	classifier.fit(features, targets)
 	print('trained model')
 	return classifier
 
 def cross_validate(train_features, targets_train, iters):
 	"""
-	Runs randomized cross validation using adjustable MultinomialNB params.
+	Runs randomized cross validation using adjustable LDA params.
 
 	Returns:
 		The model that is the most accurate
 	"""
 	print('starting cross validation')
-	param_grid = {'alpha': sp_rand()}
-	model = MultinomialNB()
+	param_grid = {'tol': sp_rand()}
+	model = LDA()
 	rsearch = RandomizedSearchCV(estimator=model, param_distributions=param_grid, n_iter=iters)
 	rsearch.fit(train_features, targets_train)
 	print('finished cross validation')
-	print('best model has a score of {} using alpha={}'.format(rsearch.best_score_, rsearch.best_estimator_.alpha))
-	return rsearch.best_estimator_.alpha
+	print('best model has a score of {} using tol={}'.format(rsearch.best_score_, rsearch.best_estimator_.tol))
+	return rsearch.best_estimator_.tol
 
 def plot_precision_and_recall(predictions, targets):
 	"""Calculates and displays the precision and recall graph"""
@@ -289,8 +294,8 @@ def main():
 		classifier = load_trained_model()
 
 	if '--cross-validate' in sys.argv:
-		alpha = cross_validate(train_features, targets_train, N_CV_ITERS)
-		classifier = train_model(train_features, targets_train, alpha)
+		tolerance = cross_validate(train_features, targets_train, N_CV_ITERS)
+		classifier = train_model(train_features, targets_train, tolerance)
 		save_model(classifier, 'cross_validated_')
 
 	if '--test=validation_set' in sys.argv:
